@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ركن الشاي | المنيو والطلب</title>
+<meta name="description" content="شوف المنيو واطلب على واتساب في دقيقة.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lalezar&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#B3261E; --brand-ink:#FFF6E8; --accent:#F2B632;
+  --ink:#1E1A17; --muted:#6B635C; --line:#E4DCD2; --soft:#F7F2EC;
+  --display:'Lalezar','Tajawal',sans-serif; --body:'Tajawal',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--body);color:var(--ink);background:#fff;line-height:1.6;padding-bottom:92px}
+:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:0 22px;border-radius:999px;font:700 1rem var(--body);text-decoration:none;border:2px solid transparent;cursor:pointer}
+.wa{background:var(--accent);color:var(--ink)}
+.ghost{border-color:currentColor;background:transparent;color:inherit}
+
+.hero{background:var(--brand);color:var(--brand-ink);min-height:72vh;padding:72px 24px 48px;display:flex;flex-direction:column;justify-content:flex-end}
+.hero h1{font:400 clamp(3.5rem,17vw,8rem)/1 var(--display);margin:0 0 12px}
+.hero p{font-size:1.25rem;max-width:28ch;margin:0 0 28px}
+.actions{display:flex;gap:12px;flex-wrap:wrap}
+
+#cats{position:sticky;top:0;z-index:5;display:flex;gap:8px;overflow-x:auto;padding:10px 16px;background:#fff;border-bottom:1px solid var(--line)}
+#cats a{flex:none;display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;background:var(--soft);color:var(--ink);text-decoration:none;font-weight:500}
+
+.cat{max-width:720px;margin:0 auto;padding:32px 20px 8px;scroll-margin-top:64px}
+.cat h2{font:400 2.2rem/1.2 var(--display);color:var(--brand);margin:0 0 4px}
+.cat ul{list-style:none;margin:0;padding:0}
+.item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px dashed var(--line)}
+.item h3{margin:0;font-size:1.1rem}
+.item p{margin:2px 0 0;color:var(--muted);font-size:.92rem}
+.price{display:block;margin-top:4px;font-weight:700}
+.qty{display:flex;align-items:center;gap:6px}
+.qty b{min-width:2ch;text-align:center}
+.qty button{width:44px;height:44px;border-radius:50%;border:2px solid var(--brand);background:#fff;color:var(--brand);font:700 1.4rem/1 var(--body);cursor:pointer}
+
+.info{margin-top:32px;background:var(--soft);padding:40px 20px}
+.info>div{max-width:720px;margin:0 auto}
+.info h2{font:400 2rem/1.2 var(--display);margin:0 0 12px}
+.info dl{margin:0 0 20px}
+.info dt{font-weight:700}
+.info dd{margin:0 0 8px}
+footer{padding:24px 20px;text-align:center;color:var(--muted);font-size:.95rem}
+footer a{color:var(--ink)}
+
+#bar{position:fixed;inset:auto 0 0 0;z-index:10;display:flex;gap:10px;justify-content:center;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+#bar .btn{flex:1;max-width:320px}
+.sum{display:flex;flex-direction:column;justify-content:center;line-height:1.25;white-space:nowrap}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <h1 id="name"></h1>
+  <p id="tagline"></p>
+  <div class="actions">
+    <a class="btn wa" id="heroWa" target="_blank" rel="noopener">اطلب على واتساب</a>
+    <a class="btn ghost" href="#menu">شوف المنيو</a>
+  </div>
+</header>
+
+<nav id="cats" aria-label="أقسام المنيو"></nav>
+<main id="menu"></main>
+
+<section class="info" id="info">
+  <div>
+    <h2>مواعيدنا ومكاننا</h2>
+    <dl id="hours"></dl>
+    <p id="address"></p>
+    <a class="btn ghost" id="mapLink" target="_blank" rel="noopener" hidden>افتح الخريطة</a>
+  </div>
+</section>
+
+<footer>
+  موقع من تطوير Tavlox ·
+  <a href="https://wa.me/201031188653" target="_blank" rel="noopener">عايز موقع لمشروعك؟ كلمنا</a>
+</footer>
+
+<div id="bar"></div>
+
+<script>
+/* ===== غيّر البيانات دي بس لكل عميل ===== */
+const SHOP = {
+  name: "ركن الشاي",
+  tagline: "شاي وقهوة وحلويات على أصولها.",
+  phone: "201031188653",      // واتساب بصيغة دولية: 20 + الرقم بدون صفر
+  call: "01031188653",
+  currency: "ج.م",
+  hours: [["كل الأيام", "9 ص – 12 م"]],
+  address: "[العنوان]",
+  map: "",                    // رابط جوجل ماب (سيبه فاضي لو مفيش)
+  menu: [
+    { cat: "مشروبات ساخنة", items: [
+      { id: "h1", n: "شاي كشري", d: "شاي أسود مظبوط", p: 15 },
+      { id: "h2", n: "قهوة تركي", d: "سادة أو مظبوط", p: 30 },
+      { id: "h3", n: "نسكافيه بالحليب", p: 35 },
+      { id: "h4", n: "ينسون", p: 15 }
+    ]},
+    { cat: "مشروبات باردة", items: [
+      { id: "c1", n: "ليمون بالنعناع", d: "عصير طازة", p: 35 },
+      { id: "c2", n: "آيس كوفي", p: 50 },
+      { id: "c3", n: "كركديه", p: 25 }
+    ]},
+    { cat: "حلويات", items: [
+      { id: "d1", n: "أم علي", d: "سخنة من الفرن", p: 55 },
+      { id: "d2", n: "بسبوسة بالقشطة", p: 40 },
+      { id: "d3", n: "كنافة بالمانجا", p: 65 }
+    ]}
+  ]
+};
+/* ===== من هنا مش محتاج تعدّل ===== */
+
+const $ = s => document.querySelector(s);
+const money = n => n + " " + SHOP.currency;
+const wa = t => "https://wa.me/" + SHOP.phone + "?text=" + encodeURIComponent(t);
+const items = {}, cart = {};
+SHOP.menu.forEach(c => c.items.forEach(i => items[i.id] = i));
+
+document.title = SHOP.name + " | المنيو والطلب";
+$("#name").textContent = SHOP.name;
+$("#tagline").textContent = SHOP.tagline;
+$("#heroWa").href = wa("أهلاً " + SHOP.name + "، عايز أطلب");
+$("#hours").innerHTML = SHOP.hours.map(h => `<dt>${h[0]}</dt><dd>${h[1]}</dd>`).join("");
+$("#address").textContent = SHOP.address;
+if (SHOP.map) { $("#mapLink").href = SHOP.map; $("#mapLink").hidden = false; }
+
+$("#cats").innerHTML = SHOP.menu.map((c, i) => `<a href="#c${i}">${c.cat}</a>`).join("");
+$("#menu").innerHTML = SHOP.menu.map((c, i) => `
+  <section class="cat" id="c${i}">
+    <h2>${c.cat}</h2>
+    <ul>${c.items.map(it => `
+      <li class="item">
+        <div><h3>${it.n}</h3>${it.d ? `<p>${it.d}</p>` : ""}<span class="price">${money(it.p)}</span></div>
+        <div class="qty" data-qty="${it.id}"></div>
+      </li>`).join("")}
+    </ul>
+  </section>`).join("");
+
+function paint(id) {
+  const q = cart[id] || 0, n = items[id].n;
+  document.querySelector(`[data-qty="${id}"]`).innerHTML = q
+    ? `<button data-d="-1" aria-label="قلل ${n}">−</button><b>${q}</b><button data-d="1" aria-label="زوّد ${n}">+</button>`
+    : `<button data-d="1" aria-label="أضف ${n}">+</button>`;
+}
+
+function renderBar() {
+  const ids = Object.keys(cart);
+  const count = ids.reduce((a, i) => a + cart[i], 0);
+  const total = ids.reduce((a, i) => a + cart[i] * items[i].p, 0);
+  if (!count) {
+    $("#bar").innerHTML = `<a class="btn wa" href="${wa("أهلاً " + SHOP.name + "، عندي سؤال")}" target="_blank" rel="noopener">واتساب</a><a class="btn ghost" href="tel:${SHOP.call}">اتصل</a>`;
+    return;
+  }
+  const msg = "طلب جديد من " + SHOP.name + ":\n" +
+    ids.map(i => "• " + items[i].n + " × " + cart[i]).join("\n") +
+    "\nالإجمالي: " + money(total) + "\nالاسم والعنوان: ";
+  $("#bar").innerHTML = `<div class="sum"><b>${count} صنف</b><span>${money(total)}</span></div><a class="btn wa" href="${wa(msg)}" target="_blank" rel="noopener">ابعت الطلب على واتساب</a>`;
+}
+
+$("#menu").addEventListener("click", e => {
+  const b = e.target.closest("button[data-d]");
+  if (!b) return;
+  const id = b.closest("[data-qty]").dataset.qty;
+  cart[id] = Math.max(0, (cart[id] || 0) + Number(b.dataset.d));
+  if (!cart[id]) delete cart[id];
+  paint(id);
+  renderBar();
+});
+
+Object.keys(items).forEach(paint);
+renderBar();
+</script>
+</body>
+</html>
